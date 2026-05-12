@@ -1,0 +1,6 @@
+version: "3.9"
+
+services:
+  # XYZ subsidiary override services can be configured here.
+  # This file is intentionally left as a template for multi-subsidiary deployment.
+  # Copy the definitions from docker-compose.dept.yml and update SUBSIDIARY_ID to XYZ.

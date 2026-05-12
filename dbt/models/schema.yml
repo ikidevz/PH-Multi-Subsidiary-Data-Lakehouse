@@ -1,0 +1,160 @@
+version: 2
+
+sources:
+  - name: lakehouse_bronze
+    database: "{{ target.database }}"
+    schema: bronze
+    tables:
+      - name: employees
+      - name: sales_transactions
+      - name: journal_entries
+      - name: ap_invoices
+      - name: ar_ledger
+      - name: vat_returns
+      - name: inventory_movements
+      - name: vendors
+      - name: sec_filings
+      - name: audit_log
+      - name: wht_filings
+      - name: bir_filings_log
+      - name: payroll_runs
+      - name: statutory_contributions
+      - name: purchase_orders
+      - name: sales_orders
+      - name: customers
+      - name: campaigns
+      - name: wht_certificates
+      - name: stockholders
+      - name: board_resolutions
+      - name: officers
+      - name: access_events
+      - name: system_incidents
+
+models:
+  - name: stg_employees
+    description: "Stage employee master data from bronze HR feeds."
+    columns:
+      - name: subsidiary_id
+        tests: [not_null]
+      - name: employee_id
+        tests: [not_null, unique]
+      - name: first_name
+        tests: [not_null]
+      - name: last_name
+        tests: [not_null]
+  - name: stg_sales_transactions
+    description: "Stage bronze sales transaction data for revenue and intercompany analytics."
+    columns:
+      - name: invoice_number
+        tests: [not_null, unique]
+      - name: invoice_date
+        tests: [not_null]
+      - name: gross_amount
+        tests: [not_null]
+  - name: stg_finance__journal_entries
+    description: "Stage bronze finance journal entries for general ledger reconciliation."
+    columns:
+      - name: entry_number
+        tests: [not_null, unique]
+      - name: debit_amount
+        tests: [not_null]
+      - name: credit_amount
+        tests: [not_null]
+  - name: stg_finance__ap_invoices
+    description: "Stage bronze accounts payable invoices."
+    columns:
+      - name: invoice_number
+        tests: [not_null, unique]
+      - name: invoice_date
+        tests: [not_null]
+  - name: stg_finance__ar_ledger
+    description: "Stage bronze accounts receivable ledger records."
+    columns:
+      - name: invoice_number
+        tests: [not_null, unique]
+      - name: invoice_date
+        tests: [not_null]
+  - name: stg_tax__vat_returns
+    description: "Stage VAT filing and tax return information."
+    columns:
+      - name: period_month
+        tests: [not_null]
+      - name: period_year
+        tests: [not_null]
+  - name: stg_ops__inventory_movements
+    description: "Stage inventory movement events from operations."
+    columns:
+      - name: movement_date
+        tests: [not_null]
+  - name: stg_procurement__vendors
+    description: "Stage vendor master data for procurement analytics."
+    columns:
+      - name: vendor_id
+        tests: [not_null, unique]
+  - name: stg_legal__sec_filings
+    description: "Stage legal filing and compliance events."
+    columns:
+      - name: filing_type
+        tests: [not_null]
+  - name: stg_it_audit__audit_log
+    description: "Stage IT audit event logs for security analytics."
+    columns:
+      - name: event_timestamp
+        tests: [not_null]
+
+  - name: stg_tax__wht_filings
+    description: "Stage WHT filing records from tax department."
+  - name: stg_tax__bir_filings_log
+    description: "Stage BIR filings audit log."
+  - name: stg_hr__payroll_runs
+    description: "Stage payroll run records from HR."
+  - name: stg_hr__statutory_contributions
+    description: "Stage statutory contribution remittances (SSS/PhilHealth/PagIBIG)."
+  - name: stg_ops__purchase_orders
+    description: "Stage purchase orders from operations."
+  - name: stg_ops__sales_orders
+    description: "Stage sales orders from operations."
+  - name: stg_sales__customers
+    description: "Stage customer master from sales."
+  - name: stg_sales__campaigns
+    description: "Stage marketing campaign records from sales."
+  - name: stg_procurement__wht_certificates
+    description: "Stage BIR Form 2307 WHT certificates."
+  - name: stg_legal__stockholders
+    description: "Stage stockholder registry for GIS filing."
+  - name: stg_legal__board_resolutions
+    description: "Stage board resolutions from legal."
+  - name: stg_legal__officers
+    description: "Stage corporate officers and directors."
+  - name: stg_itaudit__access_events
+    description: "Stage system access event logs."
+  - name: stg_itaudit__system_incidents
+    description: "Stage IT security incident records."
+
+  - name: fact_sales
+    description: "Silver fact table for sales transactions."
+  - name: fact_finance_journal_entries
+    description: "Silver fact table for posted journal entries."
+  - name: fact_ap_invoices
+    description: "Silver fact table for accounts payable invoices."
+  - name: fact_ar_ledger
+    description: "Silver fact table for accounts receivable."
+  - name: fact_tax_vat_returns
+    description: "Silver fact table for VAT return filing data."
+  - name: fact_inventory_movements
+    description: "Silver fact table for inventory movement analytics."
+  - name: dim_vendors
+    description: "Silver vendor dimension for procurement analytics."
+  - name: dim_employees
+    description: "Silver employee dimension for workforce analytics."
+
+  - name: group_pnl
+    description: "Gold-layer consolidated P&L by subsidiary and period."
+  - name: exec_kpi
+    description: "Gold-layer executive KPI dashboard (primary Superset dataset)."
+  - name: gold_financial_summary
+    description: "Gold-level financial summary across subsidiaries."
+  - name: gold_hr_headcount
+    description: "Gold-layer headcount and compensation summary."
+  - name: gold_inventory_summary
+    description: "Gold-layer inventory movement summary."

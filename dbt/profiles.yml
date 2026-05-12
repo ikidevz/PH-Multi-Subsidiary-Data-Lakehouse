@@ -1,0 +1,13 @@
+ph_lakehouse:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: postgres
+      user: postgres
+      password: {{ env_var('POSTGRES_PASSWORD', 'changeme_strong_password') }}
+      port: 5432
+      dbname: lakehouse
+      schema: bronze
+      threads: 4
+      keepalives_idle: 0

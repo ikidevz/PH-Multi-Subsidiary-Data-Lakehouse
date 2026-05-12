@@ -1,0 +1,273 @@
+version: "3.9"
+# =============================================================================
+# docker-compose.dept.yml
+# Department microservices — ABC subsidiary (8 containers)
+# All containers connect to postgres-DEPT (not postgres-central)
+# Network: lakehouse-net (same as postgres-dept and kafka-connect)
+#
+# To add XYZ and RTL: copy each service block, change SUBSIDIARY_ID,
+# SUBSIDIARY_TIN, SUBSIDIARY_SEC_REG, and update port numbers:
+#   xyz: 8011-8018
+#   rtl: 8021-8028
+# =============================================================================
+
+services:
+
+  dept-finance-abc:
+    build:
+      context: ./services/dept
+      dockerfile: Dockerfile
+    container_name: dept-finance-abc
+    environment:
+      DEPT_TYPE: finance
+      SUBSIDIARY_ID: ABC
+      SUBSIDIARY_NAME: "ABC Trading Inc."
+      SUBSIDIARY_TIN: 123-456-789-000
+      SCALE_FACTOR: 1.0
+      INTERCO_RATE: 0.10
+      AVG_DAILY_JE_COUNT: 15
+      AVG_INVOICE_VALUE: 85000
+      PAYMENT_TERMS_DAYS: 30
+      # postgres-DEPT — not postgres-central
+      POSTGRES_DEPT_HOST: postgres-dept
+      POSTGRES_DEPT_PORT: 5432
+      POSTGRES_DEPT_USER: ${POSTGRES_DEPT_USER}
+      POSTGRES_DEPT_PASSWORD: ${POSTGRES_DEPT_PASSWORD}
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres-dept:
+        condition: service_healthy
+    networks:
+      - lakehouse-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dept-tax-abc:
+    build:
+      context: ./services/dept
+      dockerfile: Dockerfile
+    container_name: dept-tax-abc
+    environment:
+      DEPT_TYPE: tax
+      SUBSIDIARY_ID: ABC
+      SUBSIDIARY_TIN: 123-456-789-000
+      BIR_RDO: "040"
+      VAT_RATE: 0.12
+      LATE_FILING_RATE: 0.05
+      PENALTY_RATE: 0.25
+      FISCAL_YEAR_START: 1
+      POSTGRES_DEPT_HOST: postgres-dept
+      POSTGRES_DEPT_PORT: 5432
+      POSTGRES_DEPT_USER: ${POSTGRES_DEPT_USER}
+      POSTGRES_DEPT_PASSWORD: ${POSTGRES_DEPT_PASSWORD}
+    ports:
+      - "8002:8000"
+    depends_on:
+      postgres-dept:
+        condition: service_healthy
+    networks:
+      - lakehouse-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dept-hr-abc:
+    build:
+      context: ./services/dept
+      dockerfile: Dockerfile
+    container_name: dept-hr-abc
+    environment:
+      DEPT_TYPE: hr
+      SUBSIDIARY_ID: ABC
+      HEADCOUNT: 50
+      PAYROLL_CUTOFF_1: 15
+      PAYROLL_CUTOFF_2: 31
+      MIN_SALARY: 15000
+      MAX_SALARY: 250000
+      REGULAR_RATIO: 0.70
+      MONTHLY_ATTRITION: 0.02
+      NEW_HIRE_RATE: 0.03
+      POSTGRES_DEPT_HOST: postgres-dept
+      POSTGRES_DEPT_PORT: 5432
+      POSTGRES_DEPT_USER: ${POSTGRES_DEPT_USER}
+      POSTGRES_DEPT_PASSWORD: ${POSTGRES_DEPT_PASSWORD}
+    ports:
+      - "8003:8000"
+    depends_on:
+      postgres-dept:
+        condition: service_healthy
+    networks:
+      - lakehouse-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dept-ops-abc:
+    build:
+      context: ./services/dept
+      dockerfile: Dockerfile
+    container_name: dept-ops-abc
+    environment:
+      DEPT_TYPE: ops
+      SUBSIDIARY_ID: ABC
+      SCALE_FACTOR: 1.0
+      PRODUCT_COUNT: 50
+      WAREHOUSE_COUNT: 2
+      AVG_DAILY_RECEIPTS: 5
+      AVG_DAILY_ISSUES: 8
+      STOCKOUT_RATE: 0.03
+      PO_LEAD_DAYS: 7
+      POSTGRES_DEPT_HOST: postgres-dept
+      POSTGRES_DEPT_PORT: 5432
+      POSTGRES_DEPT_USER: ${POSTGRES_DEPT_USER}
+      POSTGRES_DEPT_PASSWORD: ${POSTGRES_DEPT_PASSWORD}
+    ports:
+      - "8004:8000"
+    depends_on:
+      postgres-dept:
+        condition: service_healthy
+    networks:
+      - lakehouse-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dept-sales-abc:
+    build:
+      context: ./services/dept
+      dockerfile: Dockerfile
+    container_name: dept-sales-abc
+    environment:
+      DEPT_TYPE: sales
+      SUBSIDIARY_ID: ABC
+      SCALE_FACTOR: 1.0
+      CUSTOMER_COUNT: 30
+      AVG_DAILY_INVOICES: 10
+      AVG_INVOICE_VALUE: 120000
+      INTERCO_RATE: 0.08
+      VAT_EXEMPT_RATE: 0.05
+      ZERO_RATED_RATE: 0.03
+      DISCOUNT_RATE: 0.02
+      CREDIT_TERMS_DAYS: 30
+      POSTGRES_DEPT_HOST: postgres-dept
+      POSTGRES_DEPT_PORT: 5432
+      POSTGRES_DEPT_USER: ${POSTGRES_DEPT_USER}
+      POSTGRES_DEPT_PASSWORD: ${POSTGRES_DEPT_PASSWORD}
+    ports:
+      - "8005:8000"
+    depends_on:
+      postgres-dept:
+        condition: service_healthy
+    networks:
+      - lakehouse-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dept-procurement-abc:
+    build:
+      context: ./services/dept
+      dockerfile: Dockerfile
+    container_name: dept-procurement-abc
+    environment:
+      DEPT_TYPE: procurement
+      SUBSIDIARY_ID: ABC
+      VENDOR_COUNT: 25
+      WHT_RATE_DEFAULT: 0.01
+      ACCREDITED_RATIO: 0.80
+      LOCAL_VENDOR_RATIO: 0.90
+      AVG_PO_VALUE: 200000
+      POSTGRES_DEPT_HOST: postgres-dept
+      POSTGRES_DEPT_PORT: 5432
+      POSTGRES_DEPT_USER: ${POSTGRES_DEPT_USER}
+      POSTGRES_DEPT_PASSWORD: ${POSTGRES_DEPT_PASSWORD}
+    ports:
+      - "8006:8000"
+    depends_on:
+      postgres-dept:
+        condition: service_healthy
+    networks:
+      - lakehouse-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dept-legal-abc:
+    build:
+      context: ./services/dept
+      dockerfile: Dockerfile
+    container_name: dept-legal-abc
+    environment:
+      DEPT_TYPE: legal
+      SUBSIDIARY_ID: ABC
+      SUBSIDIARY_SEC_REG: CS201900001
+      STOCKHOLDER_COUNT: 5
+      BOARD_SIZE: 5
+      FOREIGN_OWNERSHIP_PCT: 0.0
+      LATE_FILING_RATE: 0.10
+      FISCAL_YEAR_END: 12
+      POSTGRES_DEPT_HOST: postgres-dept
+      POSTGRES_DEPT_PORT: 5432
+      POSTGRES_DEPT_USER: ${POSTGRES_DEPT_USER}
+      POSTGRES_DEPT_PASSWORD: ${POSTGRES_DEPT_PASSWORD}
+    ports:
+      - "8007:8000"
+    depends_on:
+      postgres-dept:
+        condition: service_healthy
+    networks:
+      - lakehouse-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dept-it-audit-abc:
+    build:
+      context: ./services/dept
+      dockerfile: Dockerfile
+    container_name: dept-it-audit-abc
+    environment:
+      DEPT_TYPE: it_audit
+      SUBSIDIARY_ID: ABC
+      USER_COUNT: 60
+      SYSTEM_COUNT: 8
+      FAILED_LOGIN_RATE: 0.03
+      HIGH_RISK_RATE: 0.01
+      INCIDENT_RATE: 0.02
+      DPA_BREACH_RATE: 0.001
+      POSTGRES_DEPT_HOST: postgres-dept
+      POSTGRES_DEPT_PORT: 5432
+      POSTGRES_DEPT_USER: ${POSTGRES_DEPT_USER}
+      POSTGRES_DEPT_PASSWORD: ${POSTGRES_DEPT_PASSWORD}
+    ports:
+      - "8008:8000"
+    depends_on:
+      postgres-dept:
+        condition: service_healthy
+    networks:
+      - lakehouse-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  lakehouse-net:
+    external: true

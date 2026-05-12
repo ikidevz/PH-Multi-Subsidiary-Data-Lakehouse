@@ -1,0 +1,19 @@
+select
+    subsidiary_id,
+    invoice_number,
+    vendor_id,
+    vendor_name,
+    vendor_tin,
+    invoice_date,
+    due_date,
+    gross_amount,
+    vat_amount,
+    net_amount,
+    wht_amount,
+    payment_amount,
+    payment_date,
+    status,
+    is_interco,
+    counterpart_sub_id,
+    ingested_at
+from bronze.ap_invoices

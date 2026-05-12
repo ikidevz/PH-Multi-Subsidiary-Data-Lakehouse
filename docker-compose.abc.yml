@@ -1,0 +1,5 @@
+version: "3.9"
+
+services:
+  # ABC subsidiary override file maintained for blueprint compatibility.
+  # The core department definitions are already configured in docker-compose.dept.yml.

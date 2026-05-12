@@ -1,0 +1,5 @@
+version: "3.9"
+
+services:
+  # Retail subsidiary override services can be configured here.
+  # Copy the definitions from docker-compose.dept.yml and update SUBSIDIARY_ID to RTL.
