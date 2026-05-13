@@ -13,31 +13,25 @@ from kafka import KafkaConsumer
 import psycopg2
 from psycopg2.extras import execute_values
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Configuration
-# FIX 1: Use LAKEHOUSE_POSTGRES_DSN — correct env var passed by docker-compose.
-#         AIRFLOW_CONN_LAKEHOUSE_POSTGRES uses postgresql+psycopg2:// prefix
-#         which psycopg2.connect() does not accept.
+
 KAFKA_BOOTSTRAP = os.environ.get(
-    "KAFKA_BOOTSTRAP_SERVERS", "datahub-kafka:9092")  # FIX 5
+    "KAFKA_BOOTSTRAP_SERVER", "datahub-kafka:9092")
 POSTGRES_DSN = os.environ.get("LAKEHOUSE_POSTGRES_DSN",
                               "postgresql://postgres:changeme@postgres-central:5432/lakehouse")
 CONSUMER_GROUP = "lakehouse-cdc-consumer"
 
-# FIX 2: Case-insensitive pattern, driven by env var so new subsidiaries
-#         don't require a code change.
+
 KAFKA_TOPIC_PATTERN = os.environ.get(
     "KAFKA_TOPIC_PATTERN",
     r"(?i)^(abc|xyz|rtl)\..+"
 )
 
-# Map CDC operation codes to readable names
 OPERATION_MAP = {
     "c": "INSERT",
     "u": "UPDATE",
@@ -45,8 +39,7 @@ OPERATION_MAP = {
     "r": "SNAPSHOT",
 }
 
-# FIX 3: Whitelist regex for safe identifier names (table names, column names).
-#         Only alphanumeric + underscore, must start with letter or underscore.
+
 _SAFE_IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
 
@@ -143,11 +136,6 @@ class CDCConsumer:
     def parse_topic(self, topic):
         """
         Parse Kafka topic into (subsidiary_id, dept, table_name).
-
-        FIX 2 + FIX 3: Converts subsidiary prefix to uppercase so it
-        matches regardless of how Debezium emits the server name, and
-        validates the table_name component against the safe-identifier
-        whitelist before it ever reaches SQL.
         """
         parts = topic.split(".")
         if len(parts) < 3:
@@ -155,10 +143,8 @@ class CDCConsumer:
 
         subsidiary_id = parts[0].upper()
         dept = parts[1]
-        table_name = ".".join(parts[2:])  # handles multi-part names
+        table_name = ".".join(parts[2:])
 
-        # FIX 3: Reject topics whose table segment contains unsafe characters.
-        # Multi-part names (schema.table) are validated part-by-part.
         try:
             for segment in table_name.split("."):
                 _safe_id(segment)
@@ -204,9 +190,6 @@ class CDCConsumer:
         Upsert data into the appropriate bronze.* table.
         Handles INSERT / UPDATE / SNAPSHOT / DELETE operations.
 
-        FIX 3: Column names from the Debezium payload are validated against
-        the safe-identifier whitelist before being interpolated into SQL.
-        The table name was already validated in parse_topic().
         """
         before = cdc_fields["before"]
         after = cdc_fields["after"]

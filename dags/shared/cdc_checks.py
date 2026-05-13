@@ -12,7 +12,7 @@ def check_kafka_lag():
     try:
         from kafka import KafkaAdminClient
 
-        kafka_bootstrap = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+        kafka_bootstrap = os.getenv("KAFKA_BOOTSTRAP_SERVER", "kafka:9092")
         admin_client = KafkaAdminClient(bootstrap_servers=kafka_bootstrap)
         print(f"Connected to Kafka: {kafka_bootstrap}")
         admin_client.close()

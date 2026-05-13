@@ -14,7 +14,7 @@ DEPARTMENTS = {
 }
 
 SUBSIDIARIES = ["abc", "xyz", "rtl"]
-KAFKA_BOOTSTRAP_SERVERS = "datahub-kafka:9092"
+KAFKA_BOOTSTRAP_SERVER = "datahub-kafka:9092"
 
 
 def build_config(subsidiary: str, department: str, tables: list[str], args):
@@ -50,7 +50,7 @@ def build_config(subsidiary: str, department: str, tables: list[str], args):
             "transforms.unwrap.drop.tombstones": "true",
             "transforms.unwrap.add.fields": "op,ts_ms,db",
             "schema.history.internal.kafka.topic": f"schema-changes.{subsidiary}.{department}",
-            "schema.history.internal.kafka.bootstrap.servers": KAFKA_BOOTSTRAP_SERVERS,
+            "schema.history.internal.kafka.bootstrap.servers": KAFKA_BOOTSTRAP_SERVER,
         },
     }
 

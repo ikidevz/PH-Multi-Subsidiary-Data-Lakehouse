@@ -374,7 +374,7 @@ services:
     image: linkedin/datahub-gms:v0.11.0
     container_name: datahub-gms
     ports:
-      - "8085:8085"
+      - "8085:8080"
     depends_on:
       postgres-central:
         condition: service_healthy
@@ -383,11 +383,19 @@ services:
       datahub-zookeeper:
         condition: service_started
     environment:
+      # Database — postgres-central
       EBEAN_DATASOURCE_USERNAME: ${POSTGRES_CENTRAL_USER}
       EBEAN_DATASOURCE_PASSWORD: ${POSTGRES_CENTRAL_PASSWORD}
       EBEAN_DATASOURCE_HOST: postgres-central:5432
       EBEAN_DATASOURCE_URL: "jdbc:postgresql://postgres-central:5432/${DATAHUB_DB_NAME}"
-      KAFKA_BOOTSTRAP_SERVER: datahub-kafka:9092
+      EBEAN_DATASOURCE_DRIVER: org.postgresql.Driver
+
+      KAFKA_BOOTSTRAP_SERVER: ${KAFKA_BOOTSTRAP_SERVER}
+      KAFKA_SCHEMAREGISTRY_URL: ""
+      KAFKA_PROPERTIES_SECURITY_PROTOCOL: PLAINTEXT
+
+      # Auth
+      METADATA_SERVICE_AUTH_ENABLED: "false"
     networks:
       - multi-subsidary-net
 
@@ -398,6 +406,20 @@ services:
       - "9002:9002"
     depends_on:
       - datahub-gms
+    environment:
+      DATAHUB_SECRET: ${DATAHUB_SECRET}
+      DATAHUB_GMS_HOST: datahub-gms
+      DATAHUB_GMS_PORT: 8080 # ← internal port, not 8085
+      DATAHUB_GMS_PROTOCOL: http
+      KAFKA_BOOTSTRAP_SERVER: datahub-kafka:9092 # ← no S at the end
+      DATAHUB_ANALYTICS_ENABLED: "false"
+      JAVA_OPTS: >-
+        -Xms512m -Xmx512m
+        -Dhttp.port=9002
+        -Dconfig.file=datahub-frontend/conf/application.conf
+        -Djava.security.auth.login.config=datahub-frontend/conf/jaas.conf
+        -Dlogback.configurationFile=datahub-frontend/conf/logback.xml
+        -Dpidfile.path=/dev/null
     networks:
       - multi-subsidary-net
 
@@ -501,7 +523,7 @@ services:
       postgres-central:
         condition: service_healthy
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      KAFKA_BOOTSTRAP_SERVER: ${KAFKA_BOOTSTRAP_SERVER}
       LAKEHOUSE_POSTGRES_DSN: ${LAKEHOUSE_POSTGRES_DSN}
     volumes:
       - ./services/cdc_consumer:/app
