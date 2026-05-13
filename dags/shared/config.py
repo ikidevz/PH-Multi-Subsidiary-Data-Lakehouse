@@ -1,10 +1,5 @@
-from datetime import timedelta
-
 DEFAULT_ARGS = {
-    "owner": "airflow",
+    "owner": "iki_data_engineering",
     "depends_on_past": False,
-    "email_on_failure": False,
-    "retries": 1,
-    "retry_delay": timedelta(minutes=5),
-    "execution_timeout": timedelta(hours=2),
+    "email_on_failure": False
 }
