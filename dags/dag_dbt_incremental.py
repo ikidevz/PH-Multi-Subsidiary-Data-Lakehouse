@@ -4,24 +4,22 @@ Schedule: Manual trigger only (triggered on high Kafka CDC lag)
 Purpose: Incremental dbt snapshot + silver/gold refresh to catch up on CDC backlog.
 """
 
+from shared.config import DEFAULT_ARGS
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow import DAG
+from datetime import datetime
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from datetime import datetime
-
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
-
-from shared.config import DEFAULT_ARGS
 
 dag = DAG(
     dag_id="lakehouse_dbt_incremental_refresh",
     default_args=DEFAULT_ARGS,
     description="Incremental dbt snapshot refresh (triggered on CDC lag alert)",
-    schedule_interval=None,  # Manual trigger only
+    schedule=None,  # Manual trigger only
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["lakehouse", "transform", "incremental"],
@@ -40,9 +38,9 @@ with dag:
     dbt_incremental_silver = BashOperator(
         task_id="dbt_incremental_silver",
         bash_command=(
-            "cd /opt/dbt && dbt run "
-            "--select state:modified+ --state /tmp/dbt_state "
-            "--select tag:silver"
+            "cd /opt/dbt && "
+            "dbt compile --target prod && "
+            "dbt run --select tag:silver --threads 4"
         ),
         retries=2,
         timeout=1800,
@@ -50,7 +48,7 @@ with dag:
 
     dbt_incremental_gold = BashOperator(
         task_id="dbt_incremental_gold",
-        bash_command="cd /opt/dbt && dbt run --select tag:gold --state /tmp/dbt_state",
+        bash_command="cd /opt/dbt && dbt run --select tag:gold --threads 4",
         retries=2,
         timeout=1800,
     )

@@ -15,11 +15,11 @@ DEPT_TYPE = os.getenv("DEPT_TYPE", "finance")
 SUBSIDIARY_ID = os.getenv("SUBSIDIARY_ID", "ABC")
 
 # Department-specific database URL
-POSTGRES_HOST = os.getenv("POSTGRES_DEPT_HOST", "postgres-central")
+POSTGRES_HOST = os.getenv("POSTGRES_DEPT_HOST", "postgres-dept")
 POSTGRES_PORT = os.getenv("POSTGRES_DEPT_PORT", 5432)
 POSTGRES_USER = os.getenv("POSTGRES_DEPT_USER", "postgres")
 POSTGRES_PASSWORD = os.getenv(
-    "POSTGRES_DEPT_PASSWORD", "changeme_strong_password")
+    "POSTGRES_DEPT_PASSWORD", "multi_subsidiary_dept_password")
 POSTGRES_DB = f"dept_{DEPT_TYPE}_{SUBSIDIARY_ID.lower()}"
 
 DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"

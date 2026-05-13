@@ -6,9 +6,9 @@ Purpose: Monitor Kafka CDC consumer lag and alert if backlog exceeds threshold.
 
 from shared.cdc_checks import check_kafka_lag, check_cdc_event_log_freshness
 from shared.config import DEFAULT_ARGS
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow import DAG
 from datetime import datetime
 import sys
@@ -21,7 +21,7 @@ dag = DAG(
     dag_id="lakehouse_cdc_monitoring",
     default_args=DEFAULT_ARGS,
     description="Monitor Kafka CDC lag and alert if backlog exceeds threshold",
-    schedule_interval="*/30 * * * *",
+    schedule="*/30 * * * *",
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["lakehouse", "cdc", "monitoring"],
@@ -42,15 +42,13 @@ with dag:
         retries=1,
     )
 
-    # Log CDC status and check unprocessed events count.
-    # Uses PGPASSWORD env var (set from the Airflow connection) so psql can auth.
     log_cdc_status = BashOperator(
         task_id="log_cdc_status",
         bash_command=(
             "echo 'CDC lag monitoring completed at $(date)' && "
             "PGPASSWORD=${POSTGRES_PASSWORD} "
             "psql -h postgres-central -U postgres -d lakehouse -c "
-            "\"SELECT COUNT(*) as unprocessed_events FROM bronze.cdc_event_log WHERE is_processed = FALSE;\""
+            "\"SELECT COUNT(*) as total_events, MAX(event_ts) as last_event_ts FROM bronze.cdc_event_log WHERE event_ts >= NOW() - INTERVAL '30 minutes';\""
         ),
         env={"POSTGRES_PASSWORD": "{{ conn.lakehouse_postgres.password }}"},
     )

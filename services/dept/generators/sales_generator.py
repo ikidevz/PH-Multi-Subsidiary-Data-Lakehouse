@@ -26,12 +26,14 @@ class SalesGenerator(DepartmentGenerator):
         rows = []
         for idx in range(days * 3):
             gross = round(random.uniform(10000, 200000), 2)
-            discount = round(gross * float(self.kwargs.get("DISCOUNT_RATE", 0.02)), 2)
+            discount = round(
+                gross * float(self.kwargs.get("DISCOUNT_RATE", 0.02)), 2)
             vat_amount = round((gross - discount) * 0.12, 2)
             rows.append({
                 "subsidiary_id": self.subsidiary_id,
                 "invoice_number": f"SALES-{idx+1:05d}",
                 "customer_name": fake.company(),
+                "transaction_date": (date.today() - timedelta(days=random.randint(0, days))).isoformat(),
                 "gross_amount": gross,
                 "discount_amount": discount,
                 "vat_amount": vat_amount,

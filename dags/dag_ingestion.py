@@ -26,9 +26,9 @@ from shared.cdc_checks import check_kafka_lag, check_cdc_event_log_freshness
 from shared.config import DEFAULT_ARGS
 from airflow.utils.task_group import TaskGroup
 from airflow.providers.postgres.operators.postgres import PostgresOperator
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow import DAG
 from datetime import datetime
 import sys
@@ -46,21 +46,21 @@ ENDPOINTS = [
     # Finance
     {
         "task_id": "finance_journal_entries",
-        "url": "http://dept-finance-abc:8000/journal-entries",
+        "url": "http://dept-finance-abc:8001/journal-entries",
         "group": "finance",
         "insert_fn": insert_journal_entry,
         "params": {"days": 7},
     },
     {
         "task_id": "finance_ap_invoices",
-        "url": "http://dept-finance-abc:8000/ap-invoices",
+        "url": "http://dept-finance-abc:8001/ap-invoices",
         "group": "finance",
         "insert_fn": insert_ap_invoice,
         "params": {"days": 7},
     },
     {
         "task_id": "finance_ar_ledger",
-        "url": "http://dept-finance-abc:8000/ar-ledger",
+        "url": "http://dept-finance-abc:8001/ar-ledger",
         "group": "finance",
         "insert_fn": insert_ar_ledger,
         "params": {"days": 7},
@@ -68,21 +68,21 @@ ENDPOINTS = [
     # Tax
     {
         "task_id": "tax_vat_returns",
-        "url": "http://dept-tax-abc:8000/vat-returns",
+        "url": "http://dept-tax-abc:8002/vat-returns",
         "group": "tax",
         "insert_fn": insert_vat_return,
         "params": {"months": 3},
     },
     {
         "task_id": "tax_wht_filings",
-        "url": "http://dept-tax-abc:8000/wht-filings",
+        "url": "http://dept-tax-abc:8002/wht-filings",
         "group": "tax",
         "insert_fn": insert_wht_filing,
         "params": {"days": 7},
     },
     {
         "task_id": "tax_bir_filings_log",
-        "url": "http://dept-tax-abc:8000/bir-filings-log",
+        "url": "http://dept-tax-abc:8002/bir-filings-log",
         "group": "tax",
         "insert_fn": insert_bir_filing_log,
         "params": {"days": 7},
@@ -90,20 +90,20 @@ ENDPOINTS = [
     # HR
     {
         "task_id": "hr_employees",
-        "url": "http://dept-hr-abc:8000/employees",
+        "url": "http://dept-hr-abc:8003/employees",
         "group": "hr",
         "insert_fn": insert_hr_employee,
     },
     {
         "task_id": "hr_payroll_runs",
-        "url": "http://dept-hr-abc:8000/payroll-runs",
+        "url": "http://dept-hr-abc:8003/payroll-runs",
         "group": "hr",
         "insert_fn": insert_payroll_run,
         "params": {"days": 7},
     },
     {
         "task_id": "hr_statutory_contributions",
-        "url": "http://dept-hr-abc:8000/statutory-contributions",
+        "url": "http://dept-hr-abc:8003/statutory-contributions",
         "group": "hr",
         "insert_fn": insert_statutory_contribution,
         "params": {"days": 7},
@@ -111,21 +111,21 @@ ENDPOINTS = [
     # Ops
     {
         "task_id": "ops_inventory_movements",
-        "url": "http://dept-ops-abc:8000/inventory-movements",
+        "url": "http://dept-ops-abc:8004/inventory-movements",
         "group": "ops",
         "insert_fn": insert_inventory_movement,
         "params": {"days": 7},
     },
     {
         "task_id": "ops_purchase_orders",
-        "url": "http://dept-ops-abc:8000/purchase-orders",
+        "url": "http://dept-ops-abc:8004/purchase-orders",
         "group": "ops",
         "insert_fn": ops_insert_purchase_order,
         "params": {"days": 7},
     },
     {
         "task_id": "ops_sales_orders",
-        "url": "http://dept-ops-abc:8000/sales-orders",
+        "url": "http://dept-ops-abc:8004/sales-orders",
         "group": "ops",
         "insert_fn": insert_sales_order,
         "params": {"days": 7},
@@ -133,86 +133,86 @@ ENDPOINTS = [
     # Sales
     {
         "task_id": "sales_transactions",
-        "url": "http://dept-sales-abc:8000/sales-transactions",
+        "url": "http://dept-sales-abc:8005/sales-transactions",
         "group": "sales",
         "insert_fn": insert_sales_record,
         "params": {"days": 7},
     },
     {
         "task_id": "sales_customers",
-        "url": "http://dept-sales-abc:8000/customers",
+        "url": "http://dept-sales-abc:8005/customers",
         "group": "sales",
         "insert_fn": insert_customer,
     },
     {
         "task_id": "sales_campaigns",
-        "url": "http://dept-sales-abc:8000/campaigns",
+        "url": "http://dept-sales-abc:8005/campaigns",
         "group": "sales",
         "insert_fn": insert_campaign,
     },
     # Procurement
     {
         "task_id": "procurement_vendors",
-        "url": "http://dept-procurement-abc:8000/vendors",
+        "url": "http://dept-procurement-abc:8006/vendors",
         "group": "procurement",
         "insert_fn": insert_vendor,
     },
     {
         "task_id": "procurement_purchase_orders",
-        "url": "http://dept-procurement-abc:8000/purchase-orders",
+        "url": "http://dept-procurement-abc:8006/purchase-orders",
         "group": "procurement",
         "insert_fn": procurement_insert_purchase_order,
         "params": {"days": 7},
     },
     {
         "task_id": "procurement_wht_certs",
-        "url": "http://dept-procurement-abc:8000/wht-certs",
+        "url": "http://dept-procurement-abc:8006/wht-certs",
         "group": "procurement",
         "insert_fn": insert_wht_certificate,
     },
     # Legal
     {
         "task_id": "legal_sec_filings",
-        "url": "http://dept-legal-abc:8000/sec-filings",
+        "url": "http://dept-legal-abc:8007/sec-filings",
         "group": "legal",
         "insert_fn": insert_sec_filing,
     },
     {
         "task_id": "legal_stockholders",
-        "url": "http://dept-legal-abc:8000/stockholders",
+        "url": "http://dept-legal-abc:8007/stockholders",
         "group": "legal",
         "insert_fn": insert_stockholder,
     },
     {
         "task_id": "legal_board_resolutions",
-        "url": "http://dept-legal-abc:8000/board-resolutions",
+        "url": "http://dept-legal-abc:8007/board-resolutions",
         "group": "legal",
         "insert_fn": insert_board_resolution,
     },
     {
         "task_id": "legal_officers",
-        "url": "http://dept-legal-abc:8000/officers",
+        "url": "http://dept-legal-abc:8007/officers",
         "group": "legal",
         "insert_fn": insert_officer,
     },
     # IT Audit
     {
         "task_id": "it_audit_log",
-        "url": "http://dept-it-audit-abc:8000/audit-log",
+        "url": "http://dept-it-audit-abc:8008/audit-log",
         "group": "it_audit",
         "insert_fn": insert_audit_event,
         "params": {"days": 7},
     },
     {
         "task_id": "it_access_events",
-        "url": "http://dept-it-audit-abc:8000/access-events",
+        "url": "http://dept-it-audit-abc:8008/access-events",
         "group": "it_audit",
         "insert_fn": insert_access_event,
         "params": {"days": 7},
     },
     {
         "task_id": "it_system_incidents",
-        "url": "http://dept-it-audit-abc:8000/system-incidents",
+        "url": "http://dept-it-audit-abc:8008/system-incidents",
         "group": "it_audit",
         "insert_fn": insert_system_incident,
         "params": {"days": 7},
@@ -251,7 +251,7 @@ dag = DAG(
     description=(
         "CDC + HTTP polling → bronze → dbt silver (SCD Type 2) → dbt gold (KPIs, compliance scorecards)"
     ),
-    schedule_interval="0 1 * * *",  # 1 AM daily
+    schedule="0 1 * * *",  # 1 AM daily
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["lakehouse", "ingestion", "transform", "cdc"],

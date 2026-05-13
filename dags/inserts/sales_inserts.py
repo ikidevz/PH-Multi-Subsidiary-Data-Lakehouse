@@ -12,7 +12,7 @@ def insert_sales_record(cur, record):
             record.get("subsidiary_id"),
             record.get("invoice_number"),
             record.get("customer_name"),
-            record.get("transaction_date"),
+            record.get("transaction_date", record.get("invoice_date")),
             record.get("gross_amount"),
             record.get("discount_amount"),
             record.get("vat_amount"),
