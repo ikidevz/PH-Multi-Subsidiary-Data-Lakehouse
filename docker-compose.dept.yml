@@ -1,9 +1,8 @@
-version: "3.9"
 # =============================================================================
 # docker-compose.dept.yml
 # Department microservices — ABC subsidiary (8 containers)
 # All containers connect to postgres-DEPT (not postgres-central)
-# Network: lakehouse-net (same as postgres-dept and kafka-connect)
+# Network: multi-subsidary-net (same as postgres-dept and kafka-connect)
 #
 # To add XYZ and RTL: copy each service block, change SUBSIDIARY_ID,
 # SUBSIDIARY_TIN, SUBSIDIARY_SEC_REG, and update port numbers:
@@ -12,7 +11,6 @@ version: "3.9"
 # =============================================================================
 
 services:
-
   dept-finance-abc:
     build:
       context: ./services/dept
@@ -39,7 +37,7 @@ services:
       postgres-dept:
         condition: service_healthy
     networks:
-      - lakehouse-net
+      - multi-subsidary-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -70,7 +68,7 @@ services:
       postgres-dept:
         condition: service_healthy
     networks:
-      - lakehouse-net
+      - multi-subsidary-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -103,7 +101,7 @@ services:
       postgres-dept:
         condition: service_healthy
     networks:
-      - lakehouse-net
+      - multi-subsidary-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -135,7 +133,7 @@ services:
       postgres-dept:
         condition: service_healthy
     networks:
-      - lakehouse-net
+      - multi-subsidary-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -169,7 +167,7 @@ services:
       postgres-dept:
         condition: service_healthy
     networks:
-      - lakehouse-net
+      - multi-subsidary-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -199,7 +197,7 @@ services:
       postgres-dept:
         condition: service_healthy
     networks:
-      - lakehouse-net
+      - multi-subsidary-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -230,7 +228,7 @@ services:
       postgres-dept:
         condition: service_healthy
     networks:
-      - lakehouse-net
+      - multi-subsidary-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -261,7 +259,7 @@ services:
       postgres-dept:
         condition: service_healthy
     networks:
-      - lakehouse-net
+      - multi-subsidary-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -269,5 +267,6 @@ services:
       retries: 3
 
 networks:
-  lakehouse-net:
+  multi-subsidary-net:
     external: true
+    name: multi-subsidary-net

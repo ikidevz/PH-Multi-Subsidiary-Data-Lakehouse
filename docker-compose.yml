@@ -43,7 +43,6 @@ services:
   # INSTANCE 1 — postgres-dept
   # Hosts all 24 dept_* databases (OLTP source for Debezium CDC)
   # WAL level forced to logical via POSTGRES_INITDB_ARGS
-  # Network: lakehouse-net only (dept containers + kafka-connect)
   # ---------------------------------------------------------------------------
   postgres-dept:
     image: postgres:16
@@ -70,7 +69,7 @@ services:
       start_period: 10s
     restart: always
     networks:
-      - lakehouse-net
+      - multi-subsidary-net
 
   # ---------------------------------------------------------------------------
   # INSTANCE 2 — postgres-central
@@ -129,7 +128,6 @@ services:
         condition: service_healthy
     networks:
       - multi-subsidary-net
-      - lakehouse-net
 
   # ---------------------------------------------------------------------------
   # REDIS — Celery broker for Airflow workers
@@ -457,7 +455,6 @@ services:
 
   # ---------------------------------------------------------------------------
   # KAFKA CONNECT (DEBEZIUM)
-  # Reads WAL from postgres-DEPT → lakehouse-net
   # Publishes CDC events to Kafka → multi-subsidary-net
   # Must be on BOTH networks
   # ---------------------------------------------------------------------------
@@ -489,7 +486,6 @@ services:
       retries: 10
       start_period: 30s
     networks:
-      - lakehouse-net # reads postgres-dept WAL
       - multi-subsidary-net # publishes to datahub-kafka
 
   debezium-ui:
@@ -561,10 +557,6 @@ volumes:
   minio_data:
 
 networks:
-  # Dept OLTP layer — postgres-dept + dept services + kafka-connect
-  lakehouse-net:
-    driver: bridge
-
-  # Platform layer — postgres-central + all analytics/orchestration services
   multi-subsidary-net:
     driver: bridge
+    name: multi-subsidary-net
