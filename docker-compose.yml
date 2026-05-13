@@ -52,8 +52,6 @@ services:
       POSTGRES_USER: ${POSTGRES_DEPT_USER}
       POSTGRES_PASSWORD: ${POSTGRES_DEPT_PASSWORD}
       POSTGRES_DB: postgres
-      # Force WAL level to logical at init — required for Debezium CDC
-      POSTGRES_INITDB_ARGS: "--wal-level=logical"
     command: >
       postgres
         -c wal_level=logical
@@ -85,7 +83,6 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_CENTRAL_USER}
       POSTGRES_PASSWORD: ${POSTGRES_CENTRAL_PASSWORD}
-      # Primary DB created on container init
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
